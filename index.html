@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de IMC gratis: peso saludable según tu altura</title>
+<meta name="description" content="Calculadora de IMC gratis: calcula tu índice de masa corporal con tu peso y altura, conoce tu clasificación según la OMS y tu rango de peso saludable.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_LA">
+<meta property="og:title" content="Calculadora de IMC gratis">
+<meta property="og:description" content="Calcula tu índice de masa corporal y conoce tu rango de peso saludable según tu altura.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora de IMC",
+  "description": "Calcula tu índice de masa corporal (IMC) con tu peso y altura y conoce tu clasificación según la OMS.",
+  "inLanguage": "es",
+  "applicationCategory": "HealthApplication",
+  "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<style>
+  /* Layout: encabezado de ancho completo, formulario y resultado lado a lado, historial debajo. */
+  :root {
+    --bg: #eef2f6;
+    --card: #ffffff;
+    --text: #0f1b2d;
+    --muted: #5b6b80;
+    --border: #dbe3ec;
+    --primary: #1d5fd1;
+    --primary-dark: #174ca8;
+    --on-primary: #ffffff;
+    --error: #c62828;
+    --hero: #12315f;
+    --on-hero: #ffffff;
+    --soft: #f2f5f9;
+    --warn-bg: rgba(245, 158, 11, 0.14);
+    --shadow: 0 10px 30px rgba(15, 27, 45, 0.08);
+    --font-body: "Inter", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+    --font-display: "Space Grotesk", "Inter", "Segoe UI", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b1220;
+      --card: #131c2e;
+      --text: #e4eaf3;
+      --muted: #9aa8bc;
+      --border: #25324a;
+      --primary: #4b8bf5;
+      --primary-dark: #3a76dc;
+      --on-primary: #0b1220;
+      --error: #f28b82;
+      --hero: #0f2447;
+      --on-hero: #ffffff;
+      --soft: #0f1829;
+      --warn-bg: rgba(245, 158, 11, 0.16);
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b1220;
+    --card: #131c2e;
+    --text: #e4eaf3;
+    --muted: #9aa8bc;
+    --border: #25324a;
+    --primary: #4b8bf5;
+    --primary-dark: #3a76dc;
+    --on-primary: #0b1220;
+    --error: #f28b82;
+    --hero: #0f2447;
+    --on-hero: #ffffff;
+    --soft: #0f1829;
+    --warn-bg: rgba(245, 158, 11, 0.16);
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  header {
+    background: var(--hero);
+    color: var(--on-hero);
+    padding-block: 38px 78px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    text-align: center;
+  }
+  header h1 {
+    margin: 0 0 6px;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    text-wrap: balance;
+  }
+  header p { margin: 0; opacity: 0.88; text-wrap: balance; }
+
+  main {
+    max-width: 980px;
+    margin: -48px auto 36px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 800px) {
+    main { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  .card {
+    min-width: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 24px;
+  }
+  .card h2 { margin: 0 0 16px; font-family: var(--font-display); font-size: 1.15rem; }
+
+  .campo { margin-bottom: 16px; min-width: 0; }
+  .fila { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  @media (max-width: 420px) {
+    .fila { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  }
+  label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; }
+  input {
+    width: 100%;
+    padding: 11px 12px;
+    font: inherit;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 28%, transparent);
+  }
+  input.invalido { border-color: var(--error); }
+  .ayuda { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+  .msg-error { font-size: 0.8rem; color: var(--error); margin-top: 4px; min-height: 1.2em; }
+
+  .botones { display: flex; gap: 10px; margin-top: 6px; }
+  button {
+    font: inherit;
+    font-weight: 600;
+    padding: 12px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+  }
+  button:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+  .btn-primario { flex: 1; background: var(--primary); color: var(--on-primary); }
+  .btn-primario:hover { background: var(--primary-dark); }
+  .btn-secundario {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-secundario:hover { color: var(--text); }
+
+  /* Resultado */
+  .ejemplo {
+    display: inline-block;
+    margin-bottom: 10px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    border: 1px dashed var(--muted);
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .saludo { margin: 0 0 14px; color: var(--muted); }
+  .imc-valor {
+    font-family: var(--font-display);
+    font-size: 3.2rem;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .imc-unidad { font-size: 0.9rem; color: var(--muted); margin-left: 4px; }
+  .categoria {
+    display: inline-block;
+    margin: 10px 0 18px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .escala { position: relative; margin: 26px 0 30px; }
+  .barra { display: flex; height: 12px; border-radius: 999px; overflow: hidden; }
+  .barra span:nth-child(1) { flex: 3.5; background: #3b82f6; }
+  .barra span:nth-child(2) { flex: 6.5; background: #22c55e; }
+  .barra span:nth-child(3) { flex: 5;   background: #f59e0b; }
+  .barra span:nth-child(4) { flex: 5;   background: #f97316; }
+  .barra span:nth-child(5) { flex: 5;   background: #dc2626; }
+  #marcador {
+    position: absolute;
+    top: -6px;
+    left: 0;
+    width: 4px;
+    height: 24px;
+    background: var(--text);
+    border-radius: 2px;
+    transform: translateX(-50%);
+    transition: left 0.6s ease;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #marcador { transition: none; }
+  }
+  .marcas { position: relative; height: 18px; margin-top: 6px; font-size: 0.72rem; color: var(--muted); }
+  .marcas span { position: absolute; transform: translateX(-50%); font-variant-numeric: tabular-nums; }
+
+  .datos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .dato {
+    background: var(--soft);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    min-width: 0;
+  }
+  .dato.ancho { grid-column: 1 / -1; }
+  .dato strong { display: block; font-size: 1rem; }
+  .dato span { color: var(--muted); }
+
+  .consejo { font-size: 0.92rem; margin: 0 0 10px; }
+  .aviso-menor {
+    font-size: 0.85rem;
+    background: var(--warn-bg);
+    border-left: 4px solid #f59e0b;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+
+  /* Historial */
+  .historial { grid-column: 1 / -1; }
+  .historial-cabecera { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .historial-cabecera h2 { margin: 0; }
+  .btn-link {
+    background: none;
+    color: var(--muted);
+    padding: 4px 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: underline;
+  }
+  .tabla-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td:nth-child(3) { font-variant-numeric: tabular-nums; }
+  th { color: var(--muted); font-weight: 600; font-size: 0.8rem; }
+  #sin-historial { color: var(--muted); margin: 12px 0 0; font-size: 0.9rem; }
+
+  footer {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--muted);
+    padding-block: 0 30px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  body { margin: 0; }
+  .info { grid-column: 1 / -1; }
+  .info h2 { font-size: 1.3rem; }
+  .info h3 { font-family: var(--font-display); font-size: 1.05rem; margin: 24px 0 8px; }
+  .info p, .info li { max-width: 68ch; }
+  .info p { margin: 0 0 10px; }
+  .info ul { margin: 0 0 10px; padding-left: 20px; }
+  .formula {
+    display: inline-block;
+    background: var(--soft);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-weight: 600;
+    margin: 4px 0 10px;
+  }
+  .info details { border-top: 1px solid var(--border); padding: 10px 0; }
+  .info details:last-of-type { border-bottom: 1px solid var(--border); }
+  .info summary { cursor: pointer; font-weight: 600; }
+  .info summary:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+  .info details p { margin: 8px 0 0; }
+</style>
+</head>
+<body>
+
+
+<header>
+  <h1>Calculadora de IMC</h1>
+  <p>Calcula tu Índice de Masa Corporal y conoce tu rango de peso saludable</p>
+</header>
+
+<main>
+  <!-- Formulario -->
+  <section class="card">
+    <h2>Tus datos</h2>
+    <form id="formulario" novalidate>
+      <div class="campo">
+        <label for="nombre">Nombre</label>
+        <input type="text" id="nombre" placeholder="¿Cómo te llamas?" autocomplete="given-name">
+        <div class="msg-error" id="err-nombre"></div>
+      </div>
+
+      <div class="campo">
+        <label for="edad">Edad</label>
+        <input type="number" id="edad" placeholder="Ej. 25" min="1" max="120">
+        <div class="msg-error" id="err-edad"></div>
+      </div>
+
+      <div class="fila">
+        <div class="campo">
+          <label for="altura">Altura</label>
+          <input type="text" id="altura" inputmode="decimal" placeholder="1.70 o 170">
+          <div class="ayuda">En metros o centímetros</div>
+          <div class="msg-error" id="err-altura"></div>
+        </div>
+        <div class="campo">
+          <label for="peso">Peso (kg)</label>
+          <input type="text" id="peso" inputmode="decimal" placeholder="Ej. 70.5">
+          <div class="msg-error" id="err-peso"></div>
+        </div>
+      </div>
+
+      <div class="botones">
+        <button type="submit" class="btn-primario">Calcular</button>
+        <button type="button" class="btn-secundario" id="limpiar">Limpiar</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Resultado -->
+  <section class="card" aria-live="polite">
+    <h2>Tu resultado</h2>
+    <div id="resultado">
+      <div class="ejemplo" id="badge-ejemplo" hidden>Ejemplo</div>
+      <p class="saludo" id="saludo"></p>
+      <div><span class="imc-valor" id="imc-valor"></span><span class="imc-unidad">kg/m²</span></div>
+      <div class="categoria" id="categoria"></div>
+
+      <div class="escala">
+        <div class="barra"><span></span><span></span><span></span><span></span><span></span></div>
+        <div id="marcador"></div>
+        <div class="marcas">
+          <span style="left:14%">18.5</span>
+          <span style="left:40%">25</span>
+          <span style="left:60%">30</span>
+          <span style="left:80%">35</span>
+        </div>
+      </div>
+
+      <div class="datos">
+        <div class="dato"><span>Edad</span><strong id="d-edad"></strong></div>
+        <div class="dato"><span>Estatura</span><strong id="d-altura"></strong></div>
+        <div class="dato ancho">
+          <span>Peso saludable para tu altura</span><strong id="d-rango"></strong>
+        </div>
+      </div>
+
+      <div class="aviso-menor" id="aviso-menor" hidden>
+        Para menores de 18 años el IMC se interpreta con tablas de percentiles según edad y sexo.
+        Este resultado es solo una referencia; consulta a un pediatra.
+      </div>
+      <p class="consejo" id="consejo"></p>
+    </div>
+  </section>
+
+  <!-- Historial -->
+  <section class="card historial">
+    <div class="historial-cabecera">
+      <h2>Historial reciente</h2>
+      <button type="button" class="btn-link" id="borrar-historial">Borrar historial</button>
+    </div>
+    <p id="sin-historial">Aún no hay cálculos guardados.</p>
+    <div class="tabla-wrap">
+      <table id="tabla" hidden>
+        <thead>
+          <tr><th>Fecha</th><th>Nombre</th><th>IMC</th><th>Clasificación</th></tr>
+        </thead>
+        <tbody id="tabla-cuerpo"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Información -->
+  <section class="card info">
+    <h2>¿Qué es el IMC y cómo se calcula?</h2>
+    <p>El Índice de Masa Corporal (IMC) es un número que relaciona tu peso con tu estatura. Se usa como una
+       referencia rápida para saber si el peso de una persona adulta es bajo, normal o alto para su altura.</p>
+    <p class="formula">IMC = peso (kg) ÷ altura² (m²)</p>
+    <p>Por ejemplo, una persona que pesa 70 kg y mide 1.70 m tiene un IMC de 70 ÷ (1.70 × 1.70) = 24.2,
+       que corresponde a un peso normal.</p>
+
+    <h3>Clasificación del IMC en adultos (OMS)</h3>
+    <div class="tabla-wrap">
+      <table>
+        <thead><tr><th>IMC (kg/m²)</th><th>Clasificación</th></tr></thead>
+        <tbody>
+          <tr><td>Menos de 18.5</td><td>Bajo peso</td></tr>
+          <tr><td>18.5 a 24.9</td><td>Peso normal</td></tr>
+          <tr><td>25 a 29.9</td><td>Sobrepeso</td></tr>
+          <tr><td>30 a 34.9</td><td>Obesidad grado I</td></tr>
+          <tr><td>35 a 39.9</td><td>Obesidad grado II</td></tr>
+          <tr><td>40 o más</td><td>Obesidad grado III</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Preguntas frecuentes</h3>
+    <details>
+      <summary>¿Qué IMC se considera saludable?</summary>
+      <p>Para personas adultas, un IMC entre 18.5 y 24.9 se considera dentro del rango normal. Esta calculadora
+         también te muestra qué rango de peso en kilogramos corresponde a tu altura.</p>
+    </details>
+    <details>
+      <summary>¿El IMC sirve para niños y adolescentes?</summary>
+      <p>No de la misma forma. En menores de 18 años el IMC se interpreta con tablas de percentiles que dependen
+         de la edad y el sexo. Si tienes dudas sobre el peso de un niño, consulta a un pediatra.</p>
+    </details>
+    <details>
+      <summary>¿Es exacto para personas con mucha masa muscular?</summary>
+      <p>No siempre. El IMC no distingue entre músculo y grasa, así que una persona muy musculosa puede tener un
+         IMC alto sin tener exceso de grasa. También puede variar con la edad y en el embarazo.</p>
+    </details>
+    <details>
+      <summary>¿Puedo escribir la altura en centímetros?</summary>
+      <p>Sí. Puedes escribir 1.70 (metros) o 170 (centímetros) y la calculadora lo entiende.</p>
+    </details>
+    <details>
+      <summary>¿Se guardan mis datos?</summary>
+      <p>Los últimos cálculos se guardan solo en tu propio navegador, para que los veas en el historial.
+         No se envían a ningún servidor ni los ve nadie más.</p>
+    </details>
+  </section>
+</main>
+
+<footer>
+  El IMC es una referencia general y no sustituye una evaluación médica. No distingue entre masa
+  muscular y grasa corporal. Consulta a un profesional de la salud para una valoración personalizada.
+</footer>
+
+<script>
+  // ---------- Clasificación (OMS, adultos) ----------
+  const CATEGORIAS = [
+    { max: 18.5,     nombre: "Bajo peso",          color: "#2563eb" },
+    { max: 25,       nombre: "Peso normal",        color: "#15803d" },
+    { max: 30,       nombre: "Sobrepeso",          color: "#b45309" },
+    { max: 35,       nombre: "Obesidad grado I",   color: "#c2410c" },
+    { max: 40,       nombre: "Obesidad grado II",  color: "#dc2626" },
+    { max: Infinity, nombre: "Obesidad grado III", color: "#991b1b" }
+  ];
+
+  const EJEMPLO = { nombre: "Ana", edad: 28, altura: 1.65, peso: 62 };
+
+  const $ = (id) => document.getElementById(id);
+  const CLAVE_HISTORIAL = "imc_historial";
+
+  // ---------- Utilidades ----------
+  function clasificar(imc) {
+    return CATEGORIAS.find((c) => imc < c.max);
+  }
+
+  function leerNumero(texto) {
+    return parseFloat(String(texto).replace(",", "."));
+  }
+
+  // Acepta metros (1.70) o centímetros (170)
+  function leerAltura(texto) {
+    let v = leerNumero(texto);
+    if (v > 3) v = v / 100;
+    return v;
+  }
+
+  function textoEstatura(altura) {
+    if (altura < 1.5) return "Bajita";
+    if (altura < 1.8) return "Promedio";
+    return "Alta";
+  }
+
+  function mostrarError(campo, mensaje) {
+    $("err-" + campo).textContent = mensaje;
+    $(campo).classList.toggle("invalido", Boolean(mensaje));
+  }
+
+  // ---------- Validación ----------
+  function validar() {
+    const nombre = $("nombre").value.trim();
+    const edad = parseInt($("edad").value, 10);
+    const altura = leerAltura($("altura").value);
+    const peso = leerNumero($("peso").value);
+    let ok = true;
+
+    mostrarError("nombre", nombre ? "" : "Escribe tu nombre.");
+    if (!nombre) ok = false;
+
+    const edadOk = Number.isInteger(edad) && edad >= 1 && edad <= 120;
+    mostrarError("edad", edadOk ? "" : "Ingresa una edad entre 1 y 120.");
+    if (!edadOk) ok = false;
+
+    const alturaOk = !isNaN(altura) && altura >= 0.5 && altura <= 2.5;
+    mostrarError("altura", alturaOk ? "" : "Altura válida: 0.50 a 2.50 m.");
+    if (!alturaOk) ok = false;
+
+    const pesoOk = !isNaN(peso) && peso >= 10 && peso <= 400;
+    mostrarError("peso", pesoOk ? "" : "Peso válido: 10 a 400 kg.");
+    if (!pesoOk) ok = false;
+
+    return ok ? { nombre, edad, altura, peso } : null;
+  }
+
+  // ---------- Mostrar resultado ----------
+  function mostrarResultado(datos, esEjemplo) {
+    const { nombre, edad, altura, peso } = datos;
+    const imc = peso / (altura ** 2);
+    const cat = clasificar(imc);
+
+    // Rango de peso saludable (IMC 18.5 a 24.9)
+    const pesoMin = 18.5 * altura ** 2;
+    const pesoMax = 24.9 * altura ** 2;
+
+    $("badge-ejemplo").hidden = !esEjemplo;
+    $("saludo").textContent = esEjemplo
+      ? "Así se verá tu resultado. Completa tus datos para calcularlo."
+      : "Hola, " + nombre + ". Estos son tus resultados:";
+    $("imc-valor").textContent = imc.toFixed(1);
+
+    const etiqueta = $("categoria");
+    etiqueta.textContent = cat.nombre;
+    etiqueta.style.background = cat.color;
+
+    // Posición del marcador en la escala (IMC 15 a 40)
+    const pos = Math.min(Math.max((imc - 15) / 25, 0), 1) * 100;
+    $("marcador").style.left = pos + "%";
+
+    $("d-edad").textContent = edad + " años (" + (edad < 18 ? "menor" : "mayor") + " de edad)";
+    $("d-altura").textContent = altura.toFixed(2) + " m · " + textoEstatura(altura);
+    $("d-rango").textContent = pesoMin.toFixed(1) + " – " + pesoMax.toFixed(1) + " kg";
+
+    $("aviso-menor").hidden = edad >= 18;
+
+    let consejo;
+    if (peso < pesoMin) {
+      consejo = "Estás aproximadamente " + (pesoMin - peso).toFixed(1) +
+                " kg por debajo del rango saludable para tu altura.";
+    } else if (peso > pesoMax) {
+      consejo = "Estás aproximadamente " + (peso - pesoMax).toFixed(1) +
+                " kg por encima del rango saludable para tu altura.";
+    } else {
+      consejo = "Tu peso está dentro del rango saludable para tu altura.";
+    }
+    $("consejo").textContent = consejo;
+
+    if (!esEjemplo) {
+      guardarHistorial({
+        fecha: new Date().toLocaleDateString("es-DO"),
+        nombre: nombre,
+        imc: imc.toFixed(1),
+        categoria: cat.nombre
+      });
+    }
+  }
+
+  // ---------- Historial (localStorage) ----------
+  function leerHistorial() {
+    try {
+      return JSON.parse(localStorage.getItem(CLAVE_HISTORIAL)) || [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function guardarHistorial(registro) {
+    const lista = leerHistorial();
+    lista.unshift(registro);
+    try {
+      localStorage.setItem(CLAVE_HISTORIAL, JSON.stringify(lista.slice(0, 5)));
+    } catch (e) { /* almacenamiento no disponible */ }
+    pintarHistorial(lista.slice(0, 5));
+  }
+
+  function pintarHistorial(lista) {
+    lista = lista || leerHistorial();
+    const cuerpo = $("tabla-cuerpo");
+    cuerpo.textContent = "";
+
+    lista.forEach((r) => {
+      const fila = document.createElement("tr");
+      [r.fecha, r.nombre, r.imc, r.categoria].forEach((valor) => {
+        const celda = document.createElement("td");
+        celda.textContent = valor;
+        fila.appendChild(celda);
+      });
+      cuerpo.appendChild(fila);
+    });
+
+    $("tabla").hidden = lista.length === 0;
+    $("sin-historial").hidden = lista.length !== 0;
+  }
+
+  // ---------- Eventos ----------
+  $("formulario").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const datos = validar();
+    if (datos) mostrarResultado(datos, false);
+  });
+
+  $("limpiar").addEventListener("click", () => {
+    $("formulario").reset();
+    ["nombre", "edad", "altura", "peso"].forEach((c) => mostrarError(c, ""));
+    mostrarResultado(EJEMPLO, true);
+  });
+
+  $("borrar-historial").addEventListener("click", () => {
+    try { localStorage.removeItem(CLAVE_HISTORIAL); } catch (e) {}
+    pintarHistorial([]);
+  });
+
+  mostrarResultado(EJEMPLO, true);
+  pintarHistorial();
+</script>
+
+</body>
+</html>
